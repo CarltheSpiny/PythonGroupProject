@@ -59,9 +59,14 @@ class Game:
         self.snake.draw_snake()
 
     def check_collision(self):
+        global score
+        global high_score
         if self.fruit.pos == self.snake.body[0]:
             self.fruit.randomize()
             self.snake.add_block()
+            score += 1
+            check_score(score)
+            pygame.display.set_caption("Snake. Score: "+str(score)+" High Score: "+str(high_score))
 
     def check_fail(self):
         if not 0 <= self.snake.body[0].x < cell_number or not 0 <= self.snake.body[0].y < cell_number:
@@ -72,52 +77,134 @@ class Game:
                 self.game_over()
 
     def game_over(self):
+        global score
+        global high_score
         print("game over")
-        pygame.quit()
-        sys.exit()
+        menu("Game Over. Score:" + str(score), high_score, "RETRY")
 
-pygame.init()
+class Button():
+    def __init__(self, pos, text_input, font, base_color, hovering_color, size=(250, 100)):
+        self.x_pos = pos[0]
+        self.y_pos = pos[1]
+        self.width, self.height = size
+        self.font = font
+        self.base_color, self.hovering_color = base_color, hovering_color
+        self.text_input = text_input
+        self.text = self.font.render(self.text_input, True, "white")
+        self.rect = pygame.Rect(self.x_pos - self.width // 2, self.y_pos - self.height // 2, self.width, self.height)
 
-cell_size = 40
-cell_number = 20
-screen_size = cell_number * cell_size
+    def update(self, screen):
+        pygame.draw.rect(screen, self.base_color, self.rect, border_radius=5)
+        screen.blit(self.text, self.text.get_rect(center=self.rect.center))
 
-clock = pygame.time.Clock()
-screen = pygame.display.set_mode((screen_size, screen_size))
+    def checkForInput(self, position):
+        if self.rect.collidepoint(position):
+            return True
+        return False
 
-SCREEN_UPDATE = pygame.USEREVENT
-pygame.time.set_timer(SCREEN_UPDATE, 150)
+    def changeColor(self, position):
+        if self.rect.collidepoint(position):
+            self.base_color = self.hovering_color
+        else:
+            self.base_color = "gray"
 
-game = Game()
+def get_font(size): 
+    return pygame.font.SysFont("bahnschrift", size)
 
-while True:
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            pygame.quit()
-            sys.exit()
+def check_score(score_text):
+    global high_score
+    if score_text > high_score:
+        high_score = score_text
 
-        if event.type == SCREEN_UPDATE:
-            game.update()
+def menu(title_text, high_score_text, button1):
+    global screen
+    global score
+    score = 0
+    screen = pygame.display.set_mode((1280, 800))
+    
+    while True:
+        screen.fill("black")
+        
+        MENU_MOUSE_POS = pygame.mouse.get_pos()
 
-        if event.type == pygame.KEYDOWN:
+        title = get_font(100).render(title_text, True, "white")
+        title_rect = title.get_rect(center=(640, 100))
+
+        high_score = get_font(100).render("High Score:" + str(high_score_text), True, "white")
+        high_score_rect = high_score.get_rect(center=(640, 250))
+
+        play_button = Button(pos=(640, 400), text_input=button1, font=get_font(75), 
+                            base_color="gray", hovering_color="red")
+        quit_button = Button(pos=(640, 550), text_input="QUIT", font=get_font(75), 
+                            base_color="gray", hovering_color="red")
+
+        screen.blit(title, title_rect)
+        screen.blit(high_score, high_score_rect)
+
+        for button in [play_button, quit_button]:
+            button.changeColor(MENU_MOUSE_POS)
+            button.update(screen)
             
-            match(event.key):
-                case pygame.K_UP:
-                    if game.snake.direction.y != 1:
-                        game.snake.direction = Vector2(0, -1)
-                case pygame.K_DOWN:
-                    if game.snake.direction.y != -1:
-                        game.snake.direction = Vector2(0, 1)
-                case pygame.K_RIGHT:
-                    if game.snake.direction.x != -1:
-                        game.snake.direction = Vector2(1, 0)
-                case pygame.K_LEFT:
-                    if game.snake.direction.x != 1:
-                        game.snake.direction = Vector2(-1, 0)
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if play_button.checkForInput(MENU_MOUSE_POS):
+                    game_loop()
+                if quit_button.checkForInput(MENU_MOUSE_POS):
+                    pygame.quit()
+                    sys.exit()
 
+        pygame.display.update()
 
+def game_loop():
+    global score
+    global high_score
 
-    screen.fill((175, 215, 70))
-    game.draw_elements()
-    pygame.display.update()
-    clock.tick(60)
+    game = Game()
+    clock = pygame.time.Clock()
+    screen = pygame.display.set_mode((screen_size, screen_size))
+    pygame.display.set_caption("Snake. Score: "+str(score)+" High Score: "+str(high_score))
+    SCREEN_UPDATE = pygame.USEREVENT
+    pygame.time.set_timer(SCREEN_UPDATE, 150)
+
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+
+            if event.type == SCREEN_UPDATE:
+                game.update()
+
+            if event.type == pygame.KEYDOWN:
+                match event.key:
+                    case pygame.K_UP:
+                        if game.snake.direction.y != 1:
+                            game.snake.direction = Vector2(0, -1)
+                    case pygame.K_DOWN:
+                        if game.snake.direction.y != -1:
+                            game.snake.direction = Vector2(0, 1)
+                    case pygame.K_RIGHT:
+                        if game.snake.direction.x != -1:
+                            game.snake.direction = Vector2(1, 0)
+                    case pygame.K_LEFT:
+                        if game.snake.direction.x != 1:
+                            game.snake.direction = Vector2(-1, 0)
+
+        screen.fill((175, 215, 70))
+        game.draw_elements()
+        pygame.display.update()
+        clock.tick(60)
+
+if __name__ == "__main__":
+    pygame.init()
+    cell_size = 40
+    cell_number = 20
+    screen_size = cell_number * cell_size
+
+    score = 0
+    high_score = 0
+    pygame.display.set_caption("Snake")
+    menu("Snake Game", high_score, "START")
