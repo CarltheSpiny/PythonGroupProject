@@ -1,6 +1,10 @@
 import pygame, sys, random
 from pygame.math import Vector2
 
+# GLOBAL VARIABLES
+snake_color = pygame.Color('blue')
+current_color_index = 0
+
 class Fruit:
     def __init__(self):
         self.randomize()
@@ -18,7 +22,7 @@ class Fruit:
 class Snake:
     def __init__(self):
         self.body = [Vector2(5, 10), Vector2(6, 10), Vector2(7, 10)]
-        self.color = pygame.Color('blue')
+        self.color = snake_color
         self.direction =Vector2(-1, 0)
         self.has_new_block = False
 
@@ -83,7 +87,7 @@ class Game:
         menu("Game Over. Score:" + str(score), high_score, "RETRY")
 
 class Button():
-    def __init__(self, pos, text_input, font, base_color, hovering_color, size=(250, 100)):
+    def __init__(self, pos, text_input, font, base_color, hovering_color, size=(300, 100)):
         self.x_pos = pos[0]
         self.y_pos = pos[1]
         self.width, self.height = size
@@ -119,8 +123,18 @@ def check_score(score_text):
 def menu(title_text, high_score_text, button1):
     global screen
     global score
+    global snake_color
+    global current_color_index
+    
     score = 0
     screen = pygame.display.set_mode((1280, 800))
+    
+    play_button = Button(pos=(640, 400), text_input=button1, font=get_font(75), 
+        base_color="gray", hovering_color="red")
+    quit_button = Button(pos=(640, 550), text_input="QUIT", font=get_font(75), 
+        base_color="gray", hovering_color="red")
+    snake_color_button = Button(pos=(640, 700), text_input="BLUE", font=get_font(75),
+         base_color="gray", hovering_color="red")
     
     while True:
         screen.fill("black")
@@ -133,15 +147,10 @@ def menu(title_text, high_score_text, button1):
         high_score = get_font(100).render("High Score:" + str(high_score_text), True, "white")
         high_score_rect = high_score.get_rect(center=(640, 250))
 
-        play_button = Button(pos=(640, 400), text_input=button1, font=get_font(75), 
-                            base_color="gray", hovering_color="red")
-        quit_button = Button(pos=(640, 550), text_input="QUIT", font=get_font(75), 
-                            base_color="gray", hovering_color="red")
-
         screen.blit(title, title_rect)
         screen.blit(high_score, high_score_rect)
 
-        for button in [play_button, quit_button]:
+        for button in [play_button, quit_button, snake_color_button]:
             button.changeColor(MENU_MOUSE_POS)
             button.update(screen)
             
@@ -155,6 +164,14 @@ def menu(title_text, high_score_text, button1):
                 if quit_button.checkForInput(MENU_MOUSE_POS):
                     pygame.quit()
                     sys.exit()
+                if snake_color_button.checkForInput(MENU_MOUSE_POS):
+                    snake_color_options = ["blue", "green", "yellow", "purple", "orange", "pink"]
+                    current_color_index = (current_color_index + 1) % len(snake_color_options)
+                    snake_color = snake_color_options[current_color_index]
+                    snake_color_button.text = snake_color.upper()
+                    snake_color_button.text = get_font(75).render(snake_color_button.text, True, "white")
+                    snake_color_button.update(screen)
+                    
 
         pygame.display.update()
 
