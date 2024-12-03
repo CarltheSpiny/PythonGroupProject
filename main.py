@@ -18,11 +18,31 @@ class Fruit:
         self.pos = Vector2(self.x, self.y)
 
     def draw_fruit(self):
-        fruit_rect = pygame.Rect(
-            int(self.pos.x * cell_size), int(self.pos.y * cell_size), cell_size, cell_size
-        )
-        pygame.draw.rect(screen, self.color, fruit_rect)
+    # Draw apple body
+        fruit_center = (
+        int(self.pos.x * cell_size + cell_size // 2),
+        int(self.pos.y * cell_size + cell_size // 2),
+    )
+        pygame.draw.circle(screen, self.color, fruit_center, cell_size // 2)
 
+        # Draw apple highlight (to make it look glossy)
+        highlight_color = (255, 255, 255)  # White
+        highlight_center = (fruit_center[0] - cell_size // 6, fruit_center[1] - cell_size // 6)
+        pygame.draw.circle(screen, highlight_color, highlight_center, cell_size // 6)
+
+        # Draw apple stem
+        stem_color = (139, 69, 19)  # Brown
+        stem_rect = pygame.Rect(fruit_center[0] - 2, fruit_center[1] - cell_size // 2, 4, 8)
+        pygame.draw.rect(screen, stem_color, stem_rect)
+
+        # Draw apple leaf
+        leaf_color = (34, 139, 34)  # Green
+        leaf_points = [
+            (fruit_center[0] + cell_size // 4, fruit_center[1] - cell_size // 2),
+            (fruit_center[0] + cell_size // 2, fruit_center[1] - cell_size // 3),
+            (fruit_center[0] + cell_size // 4, fruit_center[1] - cell_size // 4),
+        ]
+        pygame.draw.polygon(screen, leaf_color, leaf_points)
 
 class Snake:
     def __init__(self):
@@ -64,8 +84,19 @@ class Game:
         self.check_fail()
 
     def draw_elements(self):
+        self.draw_background()
         self.fruit.draw_fruit()
         self.snake.draw_snake()
+
+    def draw_background(self):
+        for row in range(cell_number):
+            for col in range(cell_number):
+                if (row + col) % 2 == 0:
+                    color = (170, 215, 81)  # Light green
+                else:
+                    color = (162, 209, 73)  # Dark green
+                rect = pygame.Rect(col * cell_size, row * cell_size, cell_size, cell_size)
+                pygame.draw.rect(screen, color, rect)
 
     def check_collision(self):
         global score
