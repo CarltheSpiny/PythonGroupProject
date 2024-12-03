@@ -179,6 +179,7 @@ def menu(title_text, high_score_text, button1):
     score = 0
     screen = pygame.display.set_mode((1280, 800))
 
+    # Define buttons
     snake_color_button = Button(
         pos=(640, 700),
         text_input=snake_color.upper(),
@@ -186,7 +187,6 @@ def menu(title_text, high_score_text, button1):
         base_color="gray",
         hovering_color="red",
     )
-
     play_button = Button(
         pos=(640, 400), text_input=button1, font=get_font(75), base_color="gray", hovering_color="red"
     )
@@ -194,22 +194,34 @@ def menu(title_text, high_score_text, button1):
         pos=(640, 550), text_input="QUIT", font=get_font(75), base_color="gray", hovering_color="red"
     )
 
+    # Gradient colors
+    gradient_color_top = (135, 206, 250)  # Sky blue
+    gradient_color_bottom = (25, 25, 112)  # Midnight blue
+
     while True:
-        screen.fill("black")
+        # Create a gradient background
+        for y in range(800):
+            blend_color = [
+                gradient_color_top[i] + (gradient_color_bottom[i] - gradient_color_top[i]) * y // 800
+                for i in range(3)
+            ]
+            pygame.draw.line(screen, blend_color, (0, y), (1280, y))
 
         MENU_MOUSE_POS = pygame.mouse.get_pos()
 
+        # Title and High Score Text
         title = get_font(100).render(title_text, True, "white")
         title_rect = title.get_rect(center=(640, 100))
-
         high_score_text_render = get_font(100).render(
-            "High Score:" + str(high_score_text), True, "white"
+            "High Score: " + str(high_score_text), True, "white"
         )
         high_score_rect = high_score_text_render.get_rect(center=(640, 250))
 
+        # Draw title and high score
         screen.blit(title, title_rect)
         screen.blit(high_score_text_render, high_score_rect)
 
+        # Update and draw buttons
         for button in [play_button, quit_button, snake_color_button]:
             button.changeColor(MENU_MOUSE_POS)
             button.update(screen)
