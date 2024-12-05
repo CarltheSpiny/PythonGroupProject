@@ -6,4 +6,4 @@
 
 If you get this error: "NameError: name 'pygame' is not defined"
 You will need to run this line in your terminal: pip install pygame
-![til](https://raw.githubusercontent.com/hashrocket/hr-til/master/snake.gif)
+![til](./snake.gif)
